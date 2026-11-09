@@ -11,6 +11,7 @@ const COLD = JSON.stringify({ idleMin: 75, ttlMin: 60, tokens: 150_000, writePri
 function engine(on: any, { cold, choice, surfaces = ['vscode'] }: any) {
   const seen = {
     asked: [] as string[],
+    headers: [] as string[],
     meterArgs: [] as string[][],
     requests: 0,
     aborted: [] as string[],
@@ -34,6 +35,7 @@ function engine(on: any, { cold, choice, surfaces = ['vscode'] }: any) {
   on('tool.call', { tool: 'AskUserQuestion' }, (_: unknown, e: any) => {
     const [{ question: asked }] = e.questions
     seen.asked.push(asked)
+    seen.headers.push(e.questions[0].header)
     if (choice === undefined) throw new Error('dismissed')
     return { result: { questions: e.questions, answers: { [asked]: choice } } }
   })
@@ -85,7 +87,7 @@ test('a cold cache asks, and Continue sends the request', async ($, on) => {
   const seen = engine(on, { cold: COLD, choice: 'Continue here' })
   await session($)
   expect((await step($)).answer).toBe('sent')
-  expect(seen).toMatchObject({ requests: 1, aborted: [] })
+  expect(seen).toMatchObject({ requests: 1, aborted: [], headers: ['Cold cache'] })
   expect(seen.asked[0]).toBe(
     'The cache is cold: idle 75 min, the cache lives 60 min, context 150k. This request writes the whole ' +
       'context to the cache again at ×2 the input price instead of ×0.1 for a read. What now?',
@@ -97,6 +99,7 @@ test('the question speaks the chosen language', { options: { language: 'uk' } },
   await session($)
   expect((await step($)).answer).toBe('sent')
   expect(seen.asked[0]).toMatch(/^Кеш холодний: простій 75 хв, кеш живе 60 хв, контекст 150k\..*×2 /)
+  expect(seen.headers).toEqual(['Холодний кеш'])
 })
 
 test('Stop sends nothing and ends the turn', async ($, on) => {

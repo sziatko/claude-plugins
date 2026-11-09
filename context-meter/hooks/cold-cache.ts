@@ -38,7 +38,10 @@ async function isHeld($: EngineInterface, lang: Lang, s: ColdSettings) {
 
   const t = TEXT[lang]
   // Dismissed, or a text typed under Other: nothing is spent, as with Stop.
-  const choice = await $.ui.ask(t.coldQuestion(JSON.parse(out) as Cold), [t.continue, t.handoff, t.stop]).catch(() => t.stop)
+  const question = t.coldQuestion(JSON.parse(out) as Cold)
+  const choice = await $.ui
+    .ask(question, { header: t.header, options: [t.continue, t.handoff, t.stop] })
+    .catch(() => t.stop)
   if (choice === t.continue) return false
   if (choice === t.handoff) {
     const text = handoffText(lang, s.handoffSteps, { sessionId: await $.session.id(), transcriptPath: path })

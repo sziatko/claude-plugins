@@ -1,7 +1,8 @@
 # claude-plugins
 
 Plugins for [Claude Code](https://claude.com/claude-code). This repository is a plugin
-marketplace: add it once, then install any plugin listed here.
+marketplace, which is a catalog: adding it installs nothing. Each plugin is installed on its
+own, so you pick only the ones you want.
 
 | Plugin | What it does |
 | --- | --- |
@@ -9,20 +10,21 @@ marketplace: add it once, then install any plugin listed here.
 
 ## Install
 
-At the prompt of a Claude Code session:
+Install one plugin by its name. For example, at the prompt of a Claude Code session:
 
 ```
-/plugin install <plugin> --marketplace sziatko/claude-plugins
+/plugin install context-meter --marketplace sziatko/claude-plugins
 ```
 
 From a shell:
 
 ```
-claude plugin install <plugin> --marketplace sziatko/claude-plugins
+claude plugin install context-meter --marketplace sziatko/claude-plugins
 ```
 
-In the desktop app: click **+** next to the prompt box → **Plugins** → **Add marketplace** with
-`sziatko/claude-plugins`, then **Add plugin**.
+The first install adds the marketplace, and the other plugins in it stay uninstalled. In the
+desktop app: click **+** next to the prompt box → **Plugins** → **Add marketplace** with
+`sziatko/claude-plugins`, then **Add plugin** for the one you want.
 
 Each plugin's folder has a README with its settings and how it works.
 

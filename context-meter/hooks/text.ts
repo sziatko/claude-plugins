@@ -10,6 +10,7 @@ export type Handoff = { sessionId: string; transcriptPath: string }
 
 type Text = {
   coldQuestion: (c: Cold) => string
+  header: string
   continue: string
   handoff: string
   stop: string
@@ -24,6 +25,7 @@ export const TEXT: Record<'en' | 'uk', Text> = {
       `The cache is cold: idle ${c.idleMin} min, the cache lives ${c.ttlMin} min, context ${k(c.tokens)}. ` +
       `This request writes the whole context to the cache again at ×${c.writePrice} the input price ` +
       'instead of ×0.1 for a read. What now?',
+    header: 'Cold cache',
     continue: 'Continue here',
     handoff: 'Copy for a new session',
     stop: 'Stop',
@@ -43,6 +45,7 @@ export const TEXT: Record<'en' | 'uk', Text> = {
       `Кеш холодний: простій ${c.idleMin} хв, кеш живе ${c.ttlMin} хв, контекст ${k(c.tokens)}. ` +
       `Запит запише весь контекст у кеш заново: ×${String(c.writePrice).replace('.', ',')} ` +
       'від ціни вводу замість ×0,1 за читання. Що робити?',
+    header: 'Холодний кеш',
     continue: 'Продовжити тут',
     handoff: 'Скопіювати для нової сесії',
     stop: 'Зупинитися',

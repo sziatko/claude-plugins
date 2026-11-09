@@ -17,11 +17,14 @@ A Claude Code plugin that keeps an eye on the two things a long session quietly 
 
 Every part is configurable, and each one can be turned off.
 
-<!-- Screenshots: docs/band.png (the bar above the prompt), docs/cold-cache.png (the question) -->
+![The usage bar above the prompt in VS Code](docs/band.png)
+
+![The question before a cold-cache request](docs/cold-cache.png)
 
 ## Install
 
-At the prompt of a Claude Code session:
+This installs context-meter alone, not the other plugins in the same marketplace. At the prompt
+of a Claude Code session:
 
 ```
 /plugin install context-meter --marketplace sziatko/claude-plugins
