@@ -24,7 +24,7 @@ function engine(on: any, { cold, choice, surfaces = ['vscode'] }: any) {
     return {
       value: {
         exitCode: 0,
-        stdout: e.argv[2] === 'cold' ? cold : JSON.stringify({ summary: null, files: ['src/a.ts'] }),
+        stdout: cold,
         stderr: '',
         isStdoutTruncated: false,
         isStderrTruncated: false,
@@ -41,15 +41,7 @@ function engine(on: any, { cold, choice, surfaces = ['vscode'] }: any) {
     seen.aborted.push(e.turnId)
     return { value: undefined }
   })
-  on('session.messages', () => ({
-    value: [
-      { role: 'user', text: 'Fix the parser', toolUses: [] },
-      { role: 'assistant', text: 'Fixed it.', toolUses: [] },
-      { role: 'user', text: '<task-notification>done</task-notification>', toolUses: [] },
-    ],
-  }))
   on('session.id', () => ({ value: 's1' }))
-  on('agent.list', () => ({ value: [] }))
   on('ui.copy', (_: unknown, e: any) => {
     seen.copied.push(e.text)
     return { value: { isCopied: true } }
@@ -121,13 +113,13 @@ test('a dismissed question spends nothing either', async ($, on) => {
   expect(seen).toMatchObject({ requests: 0, aborted: ['t1'] })
 })
 
-test('the handoff is copied, and the request is not sent', async ($, on) => {
+test('the handoff points at the transcript, and the request is not sent', async ($, on) => {
   const seen = engine(on, { cold: COLD, choice: 'Copy for a new session' })
   await session($)
   await step($)
   expect(seen.requests).toBe(0)
-  expect(seen.copied[0]).toContain('My last request:\nFix the parser')
-  expect(seen.copied[0]).toContain('src/a.ts')
+  expect(seen.copied[0]).toContain('session s1')
+  expect(seen.copied[0]).toContain('Its transcript: /t/s1.jsonl')
   expect(seen.copied[0]).toMatch(/\n\nFirst run git status/)
   expect(seen.logged[0]).toMatch(/^Copied for a new session/)
 })
@@ -164,23 +156,9 @@ test('turned off, nothing is checked', { options: { cold_cache_check: false } },
   expect(seen).toMatchObject({ asked: [], meterArgs: [], requests: 1 })
 })
 
-test('the handoff text leaves out what it does not have', () => {
-  const text = handoffText(
-    'en',
-    { minTokens: 100_000, quoteChars: 2000, handoffSteps: '' },
-    {
-      sessionId: 's1',
-      transcriptPath: '/t/s1.jsonl',
-      summary: null,
-      prompt: undefined,
-      answer: `${'x'.repeat(3000)}end`,
-      files: [],
-      agents: [],
-    },
-  )
-  expect(text).toContain('session s1')
-  expect(text).not.toContain('summary')
-  expect(text).not.toContain('My last request')
-  expect(text).not.toContain('Files')
-  expect(text).toMatch(/\n\nYour last message:\nx{1997}end$/)
+test('with no steps set the handoff is the pointer alone', () => {
+  const text = handoffText('uk', '', { sessionId: 's1', transcriptPath: '/t/s1.jsonl' })
+  expect(text.split('\n\n')).toHaveLength(2)
+  expect(text).toContain('сесії Claude Code s1')
+  expect(text).toContain('транскрипт: /t/s1.jsonl')
 })

@@ -1,6 +1,6 @@
 {
   "name": "context-meter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A context-usage bar and session cost above the prompt; asks before a request re-sends a big context to an expired prompt cache (continue, copy a handoff for a new session, or stop); can skip auto-compaction while uncommitted work is in progress",
   "types": "./types/index.d.ts",
   "license": "MIT",
@@ -12,14 +12,20 @@
       "type": "string",
       "title": "Language",
       "description": "Language of the questions, notices and the handoff text",
-      "options": ["en", "uk"],
+      "options": [
+        "en",
+        "uk"
+      ],
       "default": "en"
     },
     "bar_scale": {
       "type": "string",
       "title": "Bar scale",
       "description": "auto-compact: fill against CLAUDE_CODE_AUTO_COMPACT_WINDOW when it is set (the model's window when not); window: fill against the model's whole context window",
-      "options": ["auto-compact", "window"],
+      "options": [
+        "auto-compact",
+        "window"
+      ],
       "default": "auto-compact"
     },
     "warn_percent": {
@@ -62,13 +68,6 @@
       "description": "A smaller context is re-sent without asking",
       "default": 100000,
       "min": 1000
-    },
-    "handoff_quote_chars": {
-      "type": "number",
-      "title": "Handoff quote length",
-      "description": "Characters kept from your last request and from Claude's last message in the handoff",
-      "default": 2000,
-      "min": 100
     },
     "handoff_steps": {
       "type": "string",

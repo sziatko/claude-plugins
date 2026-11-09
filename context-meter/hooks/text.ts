@@ -5,15 +5,8 @@ export const k = (n: number) => `${Math.round(n / 1000)}k`
 // What meter.js reports about a cold cache.
 export type Cold = { idleMin: number; ttlMin: number; tokens: number; writePrice: number }
 
-export type Handoff = {
-  sessionId: string
-  transcriptPath: string
-  summary: string | null
-  prompt: string | undefined
-  answer: string | undefined
-  files: string[]
-  agents: string[]
-}
+// A pointer to the old session, not a copy of it: the new one reads what it needs.
+export type Handoff = { sessionId: string; transcriptPath: string }
 
 type Text = {
   coldQuestion: (c: Cold) => string
@@ -21,7 +14,7 @@ type Text = {
   handoff: string
   stop: string
   copied: (chars: number) => string
-  handoffLines: (h: Handoff) => (string | false | null | undefined)[]
+  handoffLines: (h: Handoff) => string[]
   compactSkipped: (files: number, tokens: number) => string
 }
 
@@ -36,14 +29,11 @@ export const TEXT: Record<'en' | 'uk', Text> = {
     stop: 'Stop',
     copied: chars => `Copied for a new session, ${chars} characters.`,
     handoffLines: h => [
-      `Continuing the work of the previous session ${h.sessionId}.`,
-      `Transcript: ${h.transcriptPath}. It is large: do not read it whole. Grep it for a keyword ` +
-        'or read its tail; if you need a lot of it, hand that to a subagent.',
-      h.summary && `The last compaction summary:\n${h.summary}`,
-      h.prompt && `My last request:\n${h.prompt}`,
-      h.answer && `Your last message:\n${h.answer}`,
-      h.files.length > 0 && `Files changed in the session:\n${h.files.join('\n')}`,
-      h.agents.length > 0 && `Subagents running: ${h.agents.join('; ')}`,
+      `I am continuing the work of the previous Claude Code session ${h.sessionId}; I left it ` +
+        'because its prompt cache had gone cold.',
+      `Its transcript: ${h.transcriptPath} (JSONL, one event per line, too big to read whole). ` +
+        'Read only its end, about the last 30 lines, to find my last request and where the work ' +
+        'stopped. Go further back only for what is still unclear, with Grep rather than reading.',
     ],
     compactSkipped: (files, tokens) =>
       `Auto-compact skipped: work in progress (${files} uncommitted files), context ${k(tokens)}.`,
@@ -58,14 +48,11 @@ export const TEXT: Record<'en' | 'uk', Text> = {
     stop: 'Зупинитися',
     copied: chars => `Скопійовано для нової сесії, ${chars} символів.`,
     handoffLines: h => [
-      `Продовжую роботу з попередньої сесії ${h.sessionId}.`,
-      `Транскрипт: ${h.transcriptPath}. Він великий: не читай цілком. Шукай Grep за ключовим ` +
-        'словом або читай хвіст; якщо треба багато, віддай підагенту.',
-      h.summary && `Останнє зведення компакту:\n${h.summary}`,
-      h.prompt && `Мій останній запит:\n${h.prompt}`,
-      h.answer && `Твоє останнє повідомлення:\n${h.answer}`,
-      h.files.length > 0 && `Файли, змінені за сесію:\n${h.files.join('\n')}`,
-      h.agents.length > 0 && `Запущені підагенти: ${h.agents.join('; ')}`,
+      `Продовжую роботу попередньої сесії Claude Code ${h.sessionId}: її зупинено, бо кеш ` +
+        'промптів охолов.',
+      `Її транскрипт: ${h.transcriptPath} (JSONL, подія на рядок, завеликий, щоб читати цілком). ` +
+        'Прочитай лише кінець, приблизно останні 30 рядків, щоб знайти мій останній запит і де ' +
+        'зупинилася робота. Далі назад іди тільки по те, що ще неясно, і шукай Grep, а не читай.',
     ],
     compactSkipped: (files, tokens) =>
       `Автокомпакт пропущено: крок триває (незакомічених файлів: ${files}), контекст ${k(tokens)}.`,

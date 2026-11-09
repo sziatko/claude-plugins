@@ -11,7 +11,7 @@ export type Settings = {
     showCost: boolean
     showInTerminal: boolean
   }
-  coldCache: { minTokens: number; quoteChars: number; handoffSteps: string } | null
+  coldCache: { minTokens: number; handoffSteps: string } | null
   compactGuard: { maxPercent: number } | null
   afterCompactNote: string | null
 }
@@ -41,7 +41,6 @@ export function parseSettings(o: PluginOptions): Settings {
     coldCache: field(o, 'cold_cache_check', 'boolean')
       ? {
           minTokens: field(o, 'cold_cache_min_tokens', 'number'),
-          quoteChars: field(o, 'handoff_quote_chars', 'number'),
           handoffSteps: field(o, 'handoff_steps', 'string').trim(),
         }
       : null,
