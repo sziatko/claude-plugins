@@ -1,0 +1,6 @@
+.claude-plugin/types/
+context-meter/.claude-plugin/types/
+context-meter/tsconfig.json
+.mcpb-cache/
+node_modules/
+*.log

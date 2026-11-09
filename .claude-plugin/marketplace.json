@@ -1,0 +1,16 @@
+{
+  "name": "sziatko-plugins",
+  "owner": {
+    "name": "Serhii Ziatko"
+  },
+  "metadata": {
+    "description": "Claude Code plugins by Serhii Ziatko"
+  },
+  "plugins": [
+    {
+      "name": "context-meter",
+      "source": "./context-meter",
+      "description": "Context-usage bar and session cost above the prompt, a question before a request re-sends a big context to an expired prompt cache, and an optional auto-compaction guard"
+    }
+  ]
+}

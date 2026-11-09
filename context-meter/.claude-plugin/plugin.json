@@ -1,0 +1,100 @@
+{
+  "name": "context-meter",
+  "version": "1.0.0",
+  "description": "A context-usage bar and session cost above the prompt; asks before a request re-sends a big context to an expired prompt cache (continue, copy a handoff for a new session, or stop); can skip auto-compaction while uncommitted work is in progress",
+  "types": "./types/index.d.ts",
+  "license": "MIT",
+  "author": {
+    "name": "Serhii Ziatko"
+  },
+  "userConfig": {
+    "language": {
+      "type": "string",
+      "title": "Language",
+      "description": "Language of the questions, notices and the handoff text",
+      "options": ["en", "uk"],
+      "default": "en"
+    },
+    "bar_scale": {
+      "type": "string",
+      "title": "Bar scale",
+      "description": "auto-compact: fill against CLAUDE_CODE_AUTO_COMPACT_WINDOW when it is set (the model's window when not); window: fill against the model's whole context window",
+      "options": ["auto-compact", "window"],
+      "default": "auto-compact"
+    },
+    "warn_percent": {
+      "type": "number",
+      "title": "Yellow from, %",
+      "description": "The bar turns yellow at this fill",
+      "default": 70,
+      "min": 1,
+      "max": 100
+    },
+    "alert_percent": {
+      "type": "number",
+      "title": "Red from, %",
+      "description": "The bar turns red at this fill",
+      "default": 90,
+      "min": 1,
+      "max": 100
+    },
+    "show_cost": {
+      "type": "boolean",
+      "title": "Show session cost",
+      "description": "Close the bar with the session's estimated cost in USD",
+      "default": true
+    },
+    "show_in_terminal": {
+      "type": "boolean",
+      "title": "Show the bar in the terminal",
+      "description": "Off by default: a terminal usually has a status line with the same figures",
+      "default": false
+    },
+    "cold_cache_check": {
+      "type": "boolean",
+      "title": "Ask before writing a cold cache",
+      "description": "Before a request that would re-send a big context to an expired prompt cache, ask: continue, copy a handoff for a new session, or stop",
+      "default": true
+    },
+    "cold_cache_min_tokens": {
+      "type": "number",
+      "title": "Ask from, tokens",
+      "description": "A smaller context is re-sent without asking",
+      "default": 100000,
+      "min": 1000
+    },
+    "handoff_quote_chars": {
+      "type": "number",
+      "title": "Handoff quote length",
+      "description": "Characters kept from your last request and from Claude's last message in the handoff",
+      "default": 2000,
+      "min": 100
+    },
+    "handoff_steps": {
+      "type": "string",
+      "title": "Handoff: first steps",
+      "description": "What the new session is told to do first, closing the handoff; empty for nothing",
+      "default": "First run git status and git diff --stat to see where the work stands, then continue my last request."
+    },
+    "compact_guard": {
+      "type": "boolean",
+      "title": "Skip auto-compact while work is uncommitted",
+      "description": "While git status shows uncommitted changes, an auto-compaction is skipped, so a summary does not cut a step in half",
+      "default": false
+    },
+    "compact_guard_max_percent": {
+      "type": "number",
+      "title": "Never skip past, % of window",
+      "description": "Past this share of the model's window auto-compaction always runs: one the engine starts because a prompt no longer fits fails the request when skipped",
+      "default": 60,
+      "min": 1,
+      "max": 95
+    },
+    "after_compact_note": {
+      "type": "string",
+      "title": "Note after a compaction",
+      "description": "Told to Claude right after a compaction; empty for nothing",
+      "default": "The context was just compacted. Before continuing, re-read the task you were on and run git diff --stat."
+    }
+  }
+}
