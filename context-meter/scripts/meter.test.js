@@ -1,6 +1,9 @@
 // Run: node scripts/meter.test.js
 const assert = require("node:assert");
-const { lastTurn, coldCache } = require("./meter.js");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { lastTurn, coldCache, transcriptOf } = require("./meter.js");
 
 const line = (o) => JSON.stringify(o);
 const at = "2026-01-01T10:00:00.000Z";
@@ -36,5 +39,15 @@ assert.strictEqual(coldCache(turn, turn.at + 75 * min, 200000), null); // below 
 assert.strictEqual(coldCache({ ...turn, ttl: null }, turn.at + 75 * min, MIN_TOKENS), null); // TTL unknown
 assert.strictEqual(coldCache(null, turn.at + 75 * min, MIN_TOKENS), null); // no turn yet
 assert.strictEqual(coldCache({ ...turn, ttl: 300 }, turn.at + 6 * min, MIN_TOKENS).writePrice, 1.25);
+
+// The transcript is found by the session id, in whichever project folder holds it.
+const config = fs.mkdtempSync(path.join(os.tmpdir(), "context-meter-"));
+fs.mkdirSync(path.join(config, "projects", "c--work-a"), { recursive: true });
+fs.mkdirSync(path.join(config, "projects", "c--work-b"));
+fs.writeFileSync(path.join(config, "projects", "c--work-b", "s-1.jsonl"), "");
+assert.strictEqual(transcriptOf("s-1", config), path.join(config, "projects", "c--work-b", "s-1.jsonl"));
+assert.throws(() => transcriptOf("s-2", config), /expected one transcript of session s-2/);
+assert.throws(() => transcriptOf("../s-1", config), /not a session id/);
+fs.rmSync(config, { recursive: true });
 
 console.log("ok");

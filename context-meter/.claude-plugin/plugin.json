@@ -1,7 +1,7 @@
 {
   "name": "context-meter",
-  "version": "1.1.0",
-  "description": "A context-usage bar and session cost above the prompt; asks before a request re-sends a big context to an expired prompt cache (continue, copy a handoff for a new session, or stop); can skip auto-compaction while uncommitted work is in progress",
+  "version": "1.2.0",
+  "description": "A context-usage bar and session cost above the prompt; asks before a request re-sends a big context to an expired prompt cache (continue, copy a handoff for a new session, or stop) and keeps a session it left on hold until you continue; /handoff copies the handoff at will; can skip auto-compaction while uncommitted work is in progress",
   "types": "./types/index.d.ts",
   "license": "MIT",
   "author": {

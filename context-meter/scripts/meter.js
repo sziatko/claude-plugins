@@ -1,9 +1,25 @@
 // The transcript reader for hooks/cold-cache.ts, in Node because the hooks module reads
 // no file over 4 MiB. It fails loudly; the module surfaces the error.
-//   cold <transcript> <min tokens> — JSON `{ idleMin, ttlMin, tokens, writePrice }` when the
-//                                    next request would write a big context to a cold cache,
-//                                    else nothing.
+//   cold <session id> <min tokens> — JSON `{ transcriptPath, cold }`, `cold` being
+//                                    `{ idleMin, ttlMin, tokens, writePrice }` when the next
+//                                    request would write a big context to a cold cache, else null.
+//   path <session id>              — the session's transcript path.
 const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+// The session's transcript, found by its id: a hooks worker the engine replaced keeps no
+// path, and the id is the one thing the session always knows.
+function transcriptOf(sessionId, configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude")) {
+  if (!/^[\w-]+$/.test(sessionId)) throw new Error(`not a session id: "${sessionId}"`);
+  const projects = path.join(configDir, "projects");
+  const found = fs
+    .readdirSync(projects)
+    .map((dir) => path.join(projects, dir, `${sessionId}.jsonl`))
+    .filter((file) => fs.existsSync(file));
+  if (found.length !== 1) throw new Error(`expected one transcript of session ${sessionId} in ${projects}, found ${found.length}`);
+  return found[0];
+}
 
 // Cache write price as a multiple of base input, by TTL in seconds; a cache read is 0.1.
 const WRITE_PRICE = { 300: 1.25, 3600: 2 };
@@ -50,10 +66,13 @@ function coldCache(turn, now, minTokens) {
 }
 
 if (require.main === module) {
-  const [command, transcriptPath, minTokens] = process.argv.slice(2);
-  if (command !== "cold") throw new Error(`unknown command "${command}", expected cold`);
-  const cold = coldCache(lastTurn(fs.readFileSync(transcriptPath, "utf8")), Date.now(), Number(minTokens));
-  process.stdout.write(cold ? JSON.stringify(cold) : "");
+  const [command, sessionId, minTokens] = process.argv.slice(2);
+  const transcriptPath = transcriptOf(sessionId);
+  if (command === "path") process.stdout.write(transcriptPath);
+  else if (command === "cold") {
+    const cold = coldCache(lastTurn(fs.readFileSync(transcriptPath, "utf8")), Date.now(), Number(minTokens));
+    process.stdout.write(JSON.stringify({ transcriptPath, cold }));
+  } else throw new Error(`unknown command "${command}", expected cold or path`);
 }
 
-module.exports = { lastTurn, coldCache };
+module.exports = { lastTurn, coldCache, transcriptOf };

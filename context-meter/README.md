@@ -10,7 +10,10 @@ A Claude Code plugin that keeps an eye on the two things a long session quietly 
   The next request re-writes the whole context to the cache at 1.25× or 2× the input price,
   where a warm cache would have cost 0.1×. With a 300k context that difference is real money.
   Before sending such a request the plugin asks what to do: **continue here**, **copy a handoff
-  for a new session**, or **stop**.
+  for a new session**, or **stop**. After any answer but *continue*, the session stays on hold:
+  every later request asks again, a background task's included, until you say *continue*.
+- **`/handoff`.** Copies the handoff with no question, so you can move to a new session
+  whenever you like. The session you leave goes on hold.
 - **An optional compaction guard.** While `git status` shows uncommitted changes, an
   auto-compaction is skipped, so a summary does not cut a half-done step in two. After a
   compaction Claude gets a short note telling it to re-read the task before going on.
@@ -88,9 +91,19 @@ or 1 hour). It asks only when all of these are true:
 - the context is at least `cold_cache_min_tokens`;
 - the idle time is longer than the TTL;
 - no compaction happened since that call;
-- the session has someone to ask (a `claude -p` run is never stopped).
+- a window (VS Code, the terminal, the desktop app) has shown the session at some point. A
+  `claude -p` run or the SDK, which never shows one, is never stopped.
 
-A request made less than 5 minutes after the previous one is not checked at all.
+A request made less than 5 minutes after the previous one is not checked at all, unless the
+session is on hold.
+
+**A hidden session.** If the session's window is closed or you are in another chat, the
+request is not sent. The plugin raises a notification, and the question waits in the session
+until you open it. If no question can be shown at all, the session goes on hold and asks when
+you next write to it.
+
+**A failed check.** If the check itself fails (the transcript is missing, the script errors,
+the check runs too long), the request is held, not sent, and a line in the transcript says why.
 
 **The three answers:**
 
@@ -114,6 +127,18 @@ A request made less than 5 minutes after the previous one is not checked at all.
   request.
   ```
 - **Stop.** Nothing is sent and the turn ends. Closing the question does the same.
+
+**On hold.** After *Copy* or *Stop*, after a closed question or a text typed under *Other*,
+and after `/handoff`, the session is on hold. Every later request in it asks again: your next
+prompt, and also a background task's notification or a comment that wakes the session while
+you work elsewhere. Nothing is sent until you answer **Continue here**. The hold is kept in the
+plugin's store, so it survives a plugin reload.
+
+### `/handoff`
+
+Copies the same handoff as the question's *Copy for a new session*, with no question, and
+puts the session on hold. Run it, open a new session, paste. It is there while
+`cold_cache_check` is on.
 
 ### Compaction
 
@@ -150,7 +175,7 @@ room to finish the step and commit.
 .claude-plugin/plugin.json   manifest and the userConfig settings
 hooks/register.tsx           the bar; wires the other parts
 hooks/settings.ts            options parsed once into typed settings
-hooks/cold-cache.ts          the question before a cold-cache request, the handoff
+hooks/cold-cache.ts          the question before a cold-cache request, the hold, /handoff
 hooks/compact.ts             the compaction guard and the note after a compaction
 hooks/text.ts                every string, in English and Ukrainian
 scripts/meter.js             transcript reader (Node: hooks modules read no file over 4 MiB)
@@ -158,7 +183,8 @@ types/index.d.ts             the session state the plugin keeps
 ```
 
 The plugin is a single hooks module. It uses `ui.render` for the bar, `turn.step` to hold a
-request, `session.compact` for the guard, and `classic.SessionStart` for the note.
+request, `$.store` for the hold, `command.run` for `/handoff`, `session.compact` for the guard,
+and `classic.SessionStart` for the note. `meter.js` finds the transcript by the session id.
 
 ## Development
 

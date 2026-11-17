@@ -10,6 +10,10 @@ export type Handoff = { sessionId: string; transcriptPath: string }
 
 type Text = {
   coldQuestion: (c: Cold) => string
+  heldQuestion: string
+  waiting: string
+  checkFailed: (why: string) => string
+  commandDescription: string
   header: string
   continue: string
   handoff: string
@@ -25,6 +29,10 @@ export const TEXT: Record<'en' | 'uk', Text> = {
       `The cache is cold: idle ${c.idleMin} min, the cache lives ${c.ttlMin} min, context ${k(c.tokens)}. ` +
       `This request writes the whole context to the cache again at ×${c.writePrice} the input price ` +
       'instead of ×0.1 for a read. What now?',
+    heldQuestion: 'This session is on hold: you left it for a new session or stopped it. Continue here?',
+    waiting: 'A request in this session waits for your answer.',
+    checkFailed: why => `The cold-cache check failed, so the request was held: ${why}`,
+    commandDescription: 'Copy a handoff for a new session and put this one on hold',
     header: 'Cold cache',
     continue: 'Continue here',
     handoff: 'Copy for a new session',
@@ -45,6 +53,10 @@ export const TEXT: Record<'en' | 'uk', Text> = {
       `Кеш холодний: простій ${c.idleMin} хв, кеш живе ${c.ttlMin} хв, контекст ${k(c.tokens)}. ` +
       `Запит запише весь контекст у кеш заново: ×${String(c.writePrice).replace('.', ',')} ` +
       'від ціни вводу замість ×0,1 за читання. Що робити?',
+    heldQuestion: 'Сесія на паузі: ти перейшов у нову сесію або зупинив цю. Продовжити тут?',
+    waiting: 'Запит у цій сесії чекає на твою відповідь.',
+    checkFailed: why => `Перевірка холодного кешу впала, тому запит затримано: ${why}`,
+    commandDescription: 'Скопіювати handoff для нової сесії й поставити цю на паузу',
     header: 'Холодний кеш',
     continue: 'Продовжити тут',
     handoff: 'Скопіювати для нової сесії',
